@@ -20,6 +20,7 @@ set -euo pipefail
 
 BACKUP_DIR="${OPENCLAW_BACKUP_DIR:-/root/.openclaw/revive-backups}"
 CONFIG_FILE="${OPENCLAW_CONFIG:-/root/.openclaw/openclaw.json}"
+SKILLS_DIR="${OPENCLAW_SKILLS_DIR:-/root/.openclaw/skills}"
 START_SCRIPT="${OPENCLAW_START_SCRIPT:-/root/start_openclaw.sh}"
 PID_FILE="/tmp/openclaw-revive.pid"
 STARTUP_TIMEOUT=15   # 秒：等待确认启动成功
@@ -50,7 +51,6 @@ cmd_snapshot() {
     # 复制 openclaw.json
     if [ -f "$CONFIG_FILE" ]; then
         cp "$CONFIG_FILE" "$dest/openclaw.json"
-        ok "配置已快照: $ver"
     else
         warn "未找到配置文件: $CONFIG_FILE"
     fi
@@ -60,13 +60,29 @@ cmd_snapshot() {
         cp "$START_SCRIPT" "$dest/start_openclaw.sh"
     fi
 
+    # 备份 skills 目录（完整复制）
+    if [ -d "$SKILLS_DIR" ]; then
+        cp -r "$SKILLS_DIR" "$dest/skills"
+        local skill_count
+        skill_count=$(ls -1 "$dest/skills" 2>/dev/null | wc -l | tr -d ' ')
+        ok "快照已保存: $ver（config + ${skill_count} 个 skill）"
+    else
+        ok "配置已快照: $ver（无 skills 目录）"
+    fi
+
     # 写元数据
+    local skills_list=""
+    if [ -d "$SKILLS_DIR" ]; then
+        skills_list=$(ls -1 "$SKILLS_DIR" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+    fi
     cat > "$dest/meta.json" <<META
 {
   "version": "$ver",
   "note": "$note",
   "timestamp": "$(date -Iseconds)",
   "config_file": "$CONFIG_FILE",
+  "skills_dir": "$SKILLS_DIR",
+  "skills": "$skills_list",
   "openclaw_version": "$(openclaw --version 2>/dev/null || echo unknown)"
 }
 META
@@ -82,17 +98,18 @@ cmd_list() {
     fi
 
     echo -e "\n${BLUE}📦 可用快照（从新到旧）:${RESET}\n"
-    printf "%-22s %-40s %s\n" "版本" "备注" "OpenClaw版本"
-    printf "%-22s %-40s %s\n" "--------------------" "--------------------------------------" "------------"
+    printf "%-22s %-8s %-36s %s\n" "版本" "Skills" "备注" "OpenClaw版本"
+    printf "%-22s %-8s %-36s %s\n" "--------------------" "-------" "----------------------------------" "------------"
 
     for dir in $(ls -1 "$BACKUP_DIR" | sort -r); do
         meta="$BACKUP_DIR/$dir/meta.json"
+        has_skills="$([ -d "$BACKUP_DIR/$dir/skills" ] && echo "✅" || echo "—")"
         if [ -f "$meta" ]; then
-            note=$(python3 -c "import json; d=json.load(open('$meta')); print(d.get('note','')[:38])" 2>/dev/null || echo "")
+            note=$(python3 -c "import json; d=json.load(open('$meta')); print(d.get('note','')[:34])" 2>/dev/null || echo "")
             ocver=$(python3 -c "import json; d=json.load(open('$meta')); print(d.get('openclaw_version','?'))" 2>/dev/null || echo "?")
-            printf "%-22s %-40s %s\n" "$dir" "$note" "$ocver"
+            printf "%-22s %-8s %-36s %s\n" "$dir" "$has_skills" "$note" "$ocver"
         else
-            printf "%-22s %-40s %s\n" "$dir" "(无元数据)" "?"
+            printf "%-22s %-8s %-36s %s\n" "$dir" "$has_skills" "(无元数据)" "?"
         fi
     done
     echo ""
@@ -118,9 +135,24 @@ cmd_restore() {
     info "先保存当前状态..."
     cmd_snapshot "restore前自动备份" > /dev/null
 
-    # 执行回退
+    # 回退配置文件
     cp "$src" "$CONFIG_FILE"
-    ok "已回退到: $ver"
+    ok "配置已回退到: $ver"
+
+    # 回退 skills 目录（如果快照中有）
+    local skills_backup="$BACKUP_DIR/$ver/skills"
+    if [ -d "$skills_backup" ]; then
+        info "回退 skills 目录..."
+        # 清空当前 skills，替换为快照版本
+        rm -rf "${SKILLS_DIR:?}"
+        cp -r "$skills_backup" "$SKILLS_DIR"
+        local skill_count
+        skill_count=$(ls -1 "$SKILLS_DIR" 2>/dev/null | wc -l | tr -d ' ')
+        ok "skills 已回退（${skill_count} 个）"
+    else
+        warn "该快照无 skills 备份，仅回退配置文件"
+    fi
+
     echo ""
     info "运行以下命令重启 OpenClaw:"
     echo "  pkill -f 'openclaw gateway' 2>/dev/null; nohup $START_SCRIPT &"
