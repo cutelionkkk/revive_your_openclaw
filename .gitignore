@@ -1,0 +1,4 @@
+# 不上传本地备份数据
+revive-backups/
+*.bak
+*.log
