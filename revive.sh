@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 # ============================================================
 # revive.sh — OpenClaw 配置版本管理 + 安全重启
-# 
+#
+# 核心用途：改坏 openclaw.json 导致无法启动时，一键回退。
+#
 # 用法:
-#   revive.sh snapshot [备注]    # 保存当前配置快照
+#   revive.sh snapshot [备注]    # 保存当前配置快照（改配置前先跑这个）
 #   revive.sh list               # 列出所有快照
 #   revive.sh restore <版本名>   # 回退到指定版本
+#   revive.sh diff <版本名>      # 对比该版本与当前配置的差异
+#   revive.sh clean [N]          # 清理旧快照，保留最新N个
 #   revive.sh restart            # 安全重启（自动快照 + 启动检测）
 #   revive.sh status             # 查看 openclaw 是否在运行
+#
+# 详细文档: docs/agent-guide.md
 # ============================================================
 
 set -euo pipefail
