@@ -1,5 +1,33 @@
 # revive.sh — OpenClaw Agent 使用指南
 
+## For AI Agents — 安装步骤
+
+当用户发来这条指令时，按以下步骤完成安装：
+
+```
+帮我安装 revive_your_openclaw：https://raw.githubusercontent.com/cutelionkkk/revive_your_openclaw/main/docs/agent-guide.md
+```
+
+**Step 1：下载脚本**
+
+```bash
+curl -o /usr/local/bin/revive https://raw.githubusercontent.com/cutelionkkk/revive_your_openclaw/main/revive.sh
+chmod +x /usr/local/bin/revive
+```
+
+**Step 2：保存第一个快照**
+
+```bash
+revive snapshot "初始快照 — 安装 revive 时"
+```
+
+**Step 3：告诉用户安装完成**
+
+向用户说明：
+> "revive 已安装好了。以后改 openclaw.json 之前先运行 `revive snapshot \"备注\"`，出问题了运行 `revive list` 看版本，再 `revive restore <版本名>` 回退。"
+
+---
+
 ## 这个工具是干什么的
 
 `revive.sh` 是 OpenClaw 的配置快照工具。

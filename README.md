@@ -12,8 +12,20 @@
 </p>
 
 <p align="center">
-  <a href="#快速开始">快速开始</a> · <a href="#用法">用法</a> · <a href="#工作流">工作流</a> · <a href="#配置">配置</a>
+  <a href="#给-openclaw-的一句话指令">给 OpenClaw 的指令</a> · <a href="#快速开始">快速开始</a> · <a href="#用法">用法</a> · <a href="#工作流">工作流</a> · <a href="#配置">配置</a>
 </p>
+
+---
+
+## 给 OpenClaw 的一句话指令
+
+**如果你是 OpenClaw 用户**，把下面这句话直接发给你的 OpenClaw，它会自动完成安装和配置：
+
+```
+帮我安装 revive_your_openclaw：https://raw.githubusercontent.com/cutelionkkk/revive_your_openclaw/main/docs/agent-guide.md
+```
+
+OpenClaw 读完文档后会自动：下载 `revive.sh`、保存第一个快照、告诉你之后怎么用。
 
 ---
 
