@@ -12,6 +12,10 @@
 </p>
 
 <p align="center">
+  <b>中文</b> | <a href="README.en.md">English</a>
+</p>
+
+<p align="center">
   <a href="#给-openclaw-的一句话指令">给 OpenClaw 的指令</a> · <a href="#快速开始">快速开始</a> · <a href="#用法">用法</a> · <a href="#工作流">工作流</a> · <a href="#配置">配置</a>
 </p>
 
